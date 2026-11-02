@@ -44,6 +44,19 @@ public class FocusReaderTests
     }
 
     [Fact]
+    public async Task Tag_buffer_is_made_unique_by_antenna_and_restored_on_disconnect()
+    {
+        var (reader, device) = Create();
+        await using var _ = reader;
+        await reader.ConnectAsync();
+        Assert.Equal(0x00, device.AntennaUnique);
+        Assert.Contains(H("FF 03 9A 01 00 00"), device.Received.Select(r => r[..^4]));
+
+        await reader.DisconnectAsync();
+        Assert.Equal(0x01, device.AntennaUnique);
+    }
+
+    [Fact]
     public async Task Info_reports_module_values()
     {
         var (reader, _) = Create();
@@ -292,6 +305,7 @@ public class FocusReaderTests
             0x04 => FakeFocusDevice.Reply(0x04, 0, Hex.Parse(RxVersion)[5..^2]),
             0x93 => FakeFocusDevice.Reply(0x93, 0, []),
             0x62 => Hex.Parse(RxPowerInfo),
+            0x6A => FakeFocusDevice.Reply(0x6A, 0, [0x01, 0x00, 0x00]),
             0x67 => Hex.Parse(RxRegion),
             0xAA => Hex.Parse(RxStop),
             _ => null,

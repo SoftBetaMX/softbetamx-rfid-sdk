@@ -20,6 +20,9 @@ internal sealed class FakeFocusDevice : FakeDeviceTransport
     public bool SendHeartbeats { get; set; } = true;
     public string? LastIoSet;
 
+    /// <summary>0x9A key 0x00 (antenna part of tag-buffer identity). The real unit was found at 0x01.</summary>
+    public byte AntennaUnique = 0x01;
+
     /// <summary>Answer 0x22 with "no tag found" (0x0400).</summary>
     public bool NoTags { get; set; }
 
@@ -59,6 +62,8 @@ internal sealed class FakeFocusDevice : FakeDeviceTransport
             case 0x91: SetAntennas(d); Push(Reply(0x91, 0, [])); break;
             case 0x6B: Push(Reply(0x6B, 0, [0x05, d[1], .. Gen2(d[1])])); break;
             case 0x9B: SetGen2(d); Push(Reply(0x9B, 0, [])); break;
+            case 0x6A: Push(Reply(0x6A, 0, [0x01, d[1], d[1] == 0x00 ? AntennaUnique : (byte)0x00])); break;
+            case 0x9A: if (d[1] == 0x00) AntennaUnique = d[2]; Push(Reply(0x9A, 0, [])); break;
             case 0x22: Push(NoTags ? Reply(0x22, 0x0400, []) : Hex.Parse(FocusCaptures.RxSyncInventory4)); break;
             case 0x29: Push(Hex.Parse(FocusCaptures.RxTagBuffer4)); break;
             case 0xAA: Extended(d); break;

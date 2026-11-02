@@ -31,6 +31,11 @@ internal static class Ex10Protocol
     public const byte GetHopping = 0x65;
     public const byte GetRegion = 0x67;
     public const byte GetProtocolConfig = 0x6B;
+    public const byte GetReaderConfig = 0x6A;
+    public const byte SetReaderConfig = 0x9A;
+
+    /// <summary>0x9A/0x6A key: 0x00 = the antenna is part of the tag-buffer identity (power-on default), 0x01 = it is not.</summary>
+    public const byte ReaderConfigAntennaUnique = 0x00;
     public const byte GetTemperature = 0x72;
     public const byte SetAntennaPort = 0x91;
     public const byte SetProtocol = 0x93;

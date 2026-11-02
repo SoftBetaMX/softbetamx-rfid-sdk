@@ -26,6 +26,7 @@ internal sealed class FocusDriver : IReaderDriver
     private CancellationTokenSource? _continuousCts;
     private volatile bool _stopRequested;
     private byte _regionCode = 0x01;
+    private byte? _originalAntennaUnique;
 
     public FocusDriver(ReaderOptions options, IDriverHost host)
     {
@@ -66,6 +67,17 @@ internal sealed class FocusDriver : IReaderDriver
         if (boot.Status != StatusOk) Log.LogDebug("Boot firmware answered 0x{Status:X4} ({Name})", boot.Status, StatusName(boot.Status));
         await RequestDataAsync(Build(SetProtocol, [0x00, ProtocolGen2]), ct).ConfigureAwait(false);
 
+        // 5) The tag buffer (0x22/0x29) must keep one entry per EPC *and antenna* (power-on default). Other software
+        //    (e.g. the vendor demo) turns that off; set it back in RAM and restore the old value on DisconnectAsync.
+        var unique = await RequestDataAsync(Build(GetReaderConfig, [0x01, ReaderConfigAntennaUnique]), ct).ConfigureAwait(false);
+        _originalAntennaUnique = null;
+        if (unique.Length >= 3 && unique[2] != 0x00)
+        {
+            await RequestDataAsync(Build(SetReaderConfig, [0x01, ReaderConfigAntennaUnique, 0x00]), ct).ConfigureAwait(false);
+            _originalAntennaUnique = unique[2];
+            Log.LogDebug("Tag buffer set to unique-by-antenna (was 0x{Value:X2}); restored on disconnect", unique[2]);
+        }
+
         var power = ParsePowerInfo(await RequestDataAsync(Build(GetPowerInfo, [0x01]), ct).ConfigureAwait(false));
         ParseRegion(await RequestDataAsync(Build(GetRegion), ct).ConfigureAwait(false), out _regionCode);
         Capabilities = Capabilities with
@@ -81,6 +93,18 @@ internal sealed class FocusDriver : IReaderDriver
     public async Task DisconnectAsync()
     {
         _continuousCts?.Cancel();
+        if (_originalAntennaUnique is { } original && _link is { IsClosed: false } && _continuousLoop is null or { IsCompleted: true })
+        {
+            try
+            {
+                await RequestDataAsync(Build(SetReaderConfig, [0x01, ReaderConfigAntennaUnique, original]), CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Log.LogDebug(ex, "Could not restore the tag-buffer configuration");
+            }
+        }
+        _originalAntennaUnique = null;
         var link = Interlocked.Exchange(ref _link, null);
         if (link is not null) await link.CloseAsync().ConfigureAwait(false);
         if (_continuousLoop is { } loop)
