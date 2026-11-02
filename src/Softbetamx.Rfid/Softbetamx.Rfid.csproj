@@ -16,6 +16,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/SoftBetaMX/softbetamx-rfid-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SoftBetaMX/softbetamx-rfid-sdk</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
 
     <!-- Symbols / SourceLink (the .NET SDK includes SourceLink; it activates once the repo has a remote). -->
     <IncludeSymbols>true</IncludeSymbols>
