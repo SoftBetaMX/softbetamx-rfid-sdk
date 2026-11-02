@@ -36,6 +36,15 @@ internal sealed class In805Driver : IReaderDriver
 
     public ReaderCapabilities Capabilities { get; }
 
+    public IReadOnlyList<int> MissingAntennas
+    {
+        get
+        {
+            var enabled = _antennas.Where(a => a.Enabled).Select(a => a.Port).ToHashSet();
+            lock (_missingReported) return _missingReported.Where(enabled.Contains).Order().ToArray();
+        }
+    }
+
     private ILogger Log => _host.Logger;
 
     private FrameLink<A0Frame> Link => _link is { IsClosed: false } l ? l : throw new IOException("Not connected");

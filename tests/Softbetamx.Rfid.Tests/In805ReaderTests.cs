@@ -65,6 +65,43 @@ public class In805ReaderTests
     }
 
     [Fact]
+    public async Task Missing_antennas_lists_ports_currently_reported_missing()
+    {
+        var (reader, device) = Create();
+        await using var _ = reader;
+        device.MissingAntennas.Add(2);
+        device.MissingAntennas.Add(4);
+        await reader.ConnectAsync();
+        await reader.SetAntennasAsync([new(1, 30), new(2, 30), new(4, 30)]);
+        Assert.Empty(reader.MissingAntennas);
+
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Equal([2, 4], reader.MissingAntennas);
+
+        // Stays listed in the following rounds (even though the error is not raised again).
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Equal([2, 4], reader.MissingAntennas);
+
+        // Antenna 2 answers again.
+        device.MissingAntennas.Remove(2);
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Equal([4], reader.MissingAntennas);
+
+        // A disabled port is not reported.
+        await reader.SetAntennasAsync([new(1, 30), new(2, 30)]);
+        Assert.Empty(reader.MissingAntennas);
+    }
+
+    [Fact]
+    public async Task Missing_antennas_is_empty_for_simulated_reader()
+    {
+        await using var reader = RfidReader.Create(new ReaderOptions { Model = ReaderModel.Simulated });
+        await reader.ConnectAsync();
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Empty(reader.MissingAntennas);
+    }
+
+    [Fact]
     public async Task Inventory_once_applies_antenna_power_and_session_per_round()
     {
         var (reader, device) = Create();

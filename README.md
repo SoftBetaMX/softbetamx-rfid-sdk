@@ -45,6 +45,7 @@ var returnLoss = await reader.GetReturnLossAsync([1]);
 - **Capabilities.** `reader.Capabilities` says what the model can do (`Buzzer`, `Relays`, `Inputs`, `ReturnLoss`, `Gen2StaticQ`, power range, ports…). Calling something the model cannot do throws `NotSupportedException` with a clear message.
 - **One command at a time.** All calls are serialized per connection, so the object is safe to share between threads. While continuous inventory runs, only `StopAsync`/`DisconnectAsync` are accepted (other calls throw `InvalidOperationException`).
 - **Events.** `TagRead` (continuous reads), `StateChanged` (`Disconnected → Connecting → Connected → Faulted`), `Error` (lost link, missing antenna, reader-side stop, handler exceptions). After `Faulted`, call `ConnectAsync` again.
+- **Missing antennas.** `reader.MissingAntennas` lists the enabled ports the reader currently reports as not connected (IN805: error 0x22 in the last round on that port; the `Error` event fires once per disconnection). Focus does not report it during inventory: use `GetInfoAsync().ConnectedAntennas`.
 - **Transports.** `TcpTransport`, `SerialTransport` (System.IO.Ports), or your own `IRfidTransport` through `ReaderOptions.Transport` (useful for tests).
 
 ## Differences between models

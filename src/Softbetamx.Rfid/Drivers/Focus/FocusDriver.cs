@@ -37,6 +37,9 @@ internal sealed class FocusDriver : IReaderDriver
 
     public ReaderCapabilities Capabilities { get; private set; }
 
+    /// <summary>The EX10 inventory does not report missing antennas; see <see cref="ReaderInfo.ConnectedAntennas"/>.</summary>
+    public IReadOnlyList<int> MissingAntennas => [];
+
     private FrameLink<Ex10Frame> Link => _link is { IsClosed: false } l ? l : throw new IOException("Not connected");
 
     // ------------------------------------------------------------------ connection

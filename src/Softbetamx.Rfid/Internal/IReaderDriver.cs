@@ -29,6 +29,9 @@ internal interface IReaderDriver : IAsyncDisposable
 {
     ReaderCapabilities Capabilities { get; }
 
+    /// <summary>Enabled ports currently reported as not connected (sorted). Empty if the model cannot tell.</summary>
+    IReadOnlyList<int> MissingAntennas { get; }
+
     Task ConnectAsync(CancellationToken ct);
 
     Task DisconnectAsync();

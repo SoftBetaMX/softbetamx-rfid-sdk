@@ -39,6 +39,8 @@ internal sealed class SimulatedDriver : IReaderDriver
 
     public ReaderCapabilities Capabilities { get; }
 
+    public IReadOnlyList<int> MissingAntennas => [];
+
     public BuzzerMode Buzzer => _buzzer;
 
     public IReadOnlyList<bool> Relays => _relays;

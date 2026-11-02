@@ -69,6 +69,14 @@ public sealed class RfidReader : IAsyncDisposable
     /// <summary>What this model can do (refined with device data after <see cref="ConnectAsync"/>).</summary>
     public ReaderCapabilities Capabilities => _driver.Capabilities;
 
+    /// <summary>
+    /// Enabled antenna ports that the reader currently reports as not connected, sorted. IN805: a port is listed
+    /// after an inventory round answers "antenna missing" (0x22) and leaves the list when it answers normally again
+    /// (the <see cref="Error"/> event fires only once per disconnection). Always empty for models that do not report
+    /// it during inventory (Focus: use <see cref="ReaderInfo.ConnectedAntennas"/>).
+    /// </summary>
+    public IReadOnlyList<int> MissingAntennas => _driver.MissingAntennas;
+
     /// <summary>Current connection state.</summary>
     public ReaderConnectionState State
     {
