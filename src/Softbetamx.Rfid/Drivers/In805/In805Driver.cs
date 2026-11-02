@@ -22,6 +22,8 @@ internal sealed class In805Driver : IReaderDriver
     private FrameLink<A0Frame>? _link;
     private AntennaConfig[] _antennas = [];
     private Gen2Settings _gen2 = new();
+    // Antenas ya reportadas como desconectadas: se avisa una vez, no en cada ronda.
+    private readonly HashSet<int> _missingReported = [];
     private Task? _continuousLoop;
     private CancellationTokenSource? _continuousCts;
 
@@ -240,9 +242,14 @@ internal sealed class In805Driver : IReaderDriver
                         });
                         continue;
                     case InventorySummary:
+                        lock (_missingReported)
+                            if (_missingReported.Remove(antenna.Port))
+                                Log.LogInformation("IN805: antenna {Antenna} is connected again", antenna.Port);
                         break;
                     case InventoryError { Code: A0Commands.AntennaMissing }:
-                        _host.OnError($"IN805: antenna {antenna.Port} reported missing (0x22)", null);
+                        bool first;
+                        lock (_missingReported) first = _missingReported.Add(antenna.Port);
+                        if (first) _host.OnError($"IN805: antenna {antenna.Port} reported missing (0x22)", null);
                         break;
                     case InventoryError error:
                         _host.OnError($"IN805: inventory on antenna {antenna.Port} failed: {A0Commands.ErrorName(error.Code)}", null);

@@ -43,6 +43,28 @@ public class In805ReaderTests
     }
 
     [Fact]
+    public async Task Missing_antenna_is_reported_once_until_it_reconnects()
+    {
+        var (reader, device) = Create();
+        await using var _ = reader;
+        device.Tags[1] = [("E2806894000050262FE85DD3", 0x5B)];
+        device.MissingAntennas.Add(2);
+        var errors = new ConcurrentQueue<string>();
+        reader.Error += (_, e) => errors.Enqueue(e.Message);
+        await reader.ConnectAsync();
+        await reader.SetAntennasAsync([new(1, 30), new(2, 30)]);
+
+        for (int i = 0; i < 3; i++) await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Single(errors, e => e.Contains("antenna 2"));
+
+        device.MissingAntennas.Remove(2);
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        device.MissingAntennas.Add(2);
+        await reader.InventoryOnceAsync(TimeSpan.FromMilliseconds(1));
+        Assert.Equal(2, errors.Count(e => e.Contains("antenna 2")));
+    }
+
+    [Fact]
     public async Task Inventory_once_applies_antenna_power_and_session_per_round()
     {
         var (reader, device) = Create();
