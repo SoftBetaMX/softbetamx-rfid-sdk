@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>Softbetamx.Rfid</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Internal records document only some parameters. -->
+    <NoWarn>$(NoWarn);CS1573</NoWarn>
+    <IsPackable>true</IsPackable>
+
+    <PackageId>Softbetamx.Rfid</PackageId>
+    <Version>0.1.0</Version>
+    <Title>Softbetamx.Rfid</Title>
+    <Description>One async .NET API for UHF RFID readers: Focus (EX10/"Moduletech" protocol, Impinj E710 ST-M714 module) and IN805 (0xA0 protocol, Impinj E710). TCP and serial transports, per-antenna power, Gen2 session/target/Q, timed and continuous inventory, buzzer, return loss and a simulated reader for testing without hardware.</Description>
+    <PackageTags>rfid;uhf;gen2;epc;impinj;e710;ex10;reader;in805</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <!-- Symbols / SourceLink (the .NET SDK includes SourceLink; it activates once the repo has a remote). -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts</PackageOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
+    <PackageReference Include="System.IO.Ports" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Softbetamx.Rfid.Tests" />
+  </ItemGroup>
+
+</Project>
